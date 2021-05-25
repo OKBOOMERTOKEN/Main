@@ -839,7 +839,7 @@ contract OKBoomer is Context, IERC20, Ownable {
         address sender = _msgSender();
         require(!_isExcluded[sender], "Excluded addresses cannot call this function");
 
-        (,uint256 tFee, uint256 tLiquidity, uint256 tDev, uint256 tBurn) = _getTValues(tAmount);
+        (,uint256 tFee, uint256 tLiquidity, uint256 tDev) = _getTValues(tAmount);
         (uint256 rAmount,,) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
         
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
@@ -850,7 +850,7 @@ contract OKBoomer is Context, IERC20, Ownable {
     function reflectionFromToken(uint256 tAmount, bool deductTransferFee) public view returns(uint256) {
         require(tAmount <= _tTotal, "Amount must be less than supply");
         
-        (,uint256 tFee, uint256 tLiquidity, uint256 tDev, uint256 tBurn) = _getTValues(tAmount);
+        (,uint256 tFee, uint256 tLiquidity, uint256 tDev) = _getTValues(tAmount);
         (uint256 rAmount, uint256 rTransferAmount,) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
 
         if (!deductTransferFee) {
