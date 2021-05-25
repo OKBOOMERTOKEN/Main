@@ -11,6 +11,6 @@ WHAT IS OK BOOMER?
 OKBoomer is a community-driven token that
 operates on the Binance Smart Chain thus requiring
 almost no gas fees to trade, as well as allowing for
-quick and seamless transactions. Due to OKB’s
+quick and seamless transactions. Due to OKBOOM’s
 tokenomics, it rewards holders through reflection
 and punishes sellers through taxes.
