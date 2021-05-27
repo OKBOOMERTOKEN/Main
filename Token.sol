@@ -711,7 +711,6 @@ contract OKBoomer is Context, IERC20, Ownable {
     uint256 private _tFeeTotal;
 
     address private _devAddress = 0x2Ac5e9bb7421496Bb55Cb215C33B705C7a4aA28c;
-    address private _burnAddress = 0x000000000000000000000000000000000000dEaD;
 
     string private _name = "OKBoomer";
     string private _symbol = "OKBOOM";
@@ -827,9 +826,6 @@ contract OKBoomer is Context, IERC20, Ownable {
         return _tFeeTotal;
     }
 
-    function burnAddress() public view returns (address) {
-        return _burnAddress;
-    }
 
     function devAddress() public view returns (address) {
         return _devAddress;
@@ -889,7 +885,7 @@ contract OKBoomer is Context, IERC20, Ownable {
     }
         
     function _transferBothExcluded(address sender, address recipient, uint256 tAmount) private {
-        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev, uint256 tBurn) = _getTValues(tAmount);
+        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev) = _getTValues(tAmount);
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
 
         _tOwned[sender] = _tOwned[sender].sub(tAmount);
@@ -898,7 +894,6 @@ contract OKBoomer is Context, IERC20, Ownable {
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         _takeLiquidity(tLiquidity);
         _takeDevFee(tDev);
-        _takeBurnFee(tBurn);
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
@@ -938,14 +933,14 @@ contract OKBoomer is Context, IERC20, Ownable {
         _tFeeTotal = _tFeeTotal.add(tFee);
     }
 
-    function _getTValues(uint256 tAmount) private view returns (uint256, uint256, uint256, uint256, uint256) {
+    function _getTValues(uint256 tAmount) private view returns (uint256, uint256, uint256, uint256) {
         uint256 tFee = calculateTaxFee(tAmount);
         uint256 tLiquidity = calculateLiquidityFee(tAmount);
         uint256 tDev = calculateDevFee(tAmount);
         uint256 tTransferAmount = tAmount.sub(tFee).sub(tLiquidity);
                 tTransferAmount = tTransferAmount.sub(tDev);
 
-        return (tTransferAmount, tFee, tLiquidity, tDev, tDev);
+        return (tTransferAmount, tFee, tLiquidity, tDev);
     }
 
     function _getRValues(uint256 tAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev, uint256 currentRate) private pure returns (uint256, uint256, uint256) {
@@ -990,13 +985,6 @@ contract OKBoomer is Context, IERC20, Ownable {
             _tOwned[_devAddress] = _tOwned[_devAddress].add(tDev);
     }
 
-    function _takeBurnFee(uint256 tBurn) private {
-        uint256 currentRate =  _getRate();
-        uint256 rBurn = tBurn.mul(currentRate);
-        _rOwned[_burnAddress] = _rOwned[_burnAddress].add(rBurn);
-        if(_isExcluded[_burnAddress])
-            _tOwned[_burnAddress] = _tOwned[_burnAddress].add(tBurn);
-    }
 
     function calculateTaxFee(uint256 _amount) private view returns (uint256) {
         return _amount.mul(_taxFee).div(
@@ -1171,20 +1159,19 @@ contract OKBoomer is Context, IERC20, Ownable {
     }
 
     function _transferStandard(address sender, address recipient, uint256 tAmount) private {
-        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev, uint256 tBurn) = _getTValues(tAmount);
+        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev) = _getTValues(tAmount);
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
         
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         _takeLiquidity(tLiquidity);
         _takeDevFee(tDev);
-        _takeBurnFee(tBurn);
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
     function _transferToExcluded(address sender, address recipient, uint256 tAmount) private {
-        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev, uint256 tBurn) = _getTValues(tAmount);
+        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev) = _getTValues(tAmount);
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
 
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
@@ -1192,13 +1179,12 @@ contract OKBoomer is Context, IERC20, Ownable {
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);           
         _takeLiquidity(tLiquidity);
         _takeDevFee(tDev);
-        _takeBurnFee(tBurn);
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
     function _transferFromExcluded(address sender, address recipient, uint256 tAmount) private {
-        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev, uint256 tBurn) = _getTValues(tAmount);
+        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev) = _getTValues(tAmount);
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
 
         _tOwned[sender] = _tOwned[sender].sub(tAmount);
@@ -1206,7 +1192,6 @@ contract OKBoomer is Context, IERC20, Ownable {
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);   
         _takeLiquidity(tLiquidity);
         _takeDevFee(tDev);
-        _takeBurnFee(tBurn);
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
