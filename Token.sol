@@ -4,6 +4,7 @@
  / / / / ,<  / __  / __ \/ __ \/ __ `__ \/ _ \/ ___/
 / /_/ / /| |/ /_/ / /_/ / /_/ / / / / / /  __/ /    
 \____/_/ |_/_____/\____/\____/_/ /_/ /_/\___/_/     
+
     10% TRANSACTION FEE
     - 3% redistributed to all holders proportionally
     - 4% auto added to the liquidity pool
@@ -709,7 +710,6 @@ contract OKBoomer is Context, IERC20, Ownable {
     uint256 private _tFeeTotal;
 
     address private _devAddress = 0x2Ac5e9bb7421496Bb55Cb215C33B705C7a4aA28c;
-    address private _routerAddress = 0x10ED43C718714eb63d5aA57B78B54704E256024E;
 
     string private _name = "OKBoomer";
     string private _symbol = "OKBOOM";
@@ -762,7 +762,7 @@ contract OKBoomer is Context, IERC20, Ownable {
         _isExcludedFromFee[owner()] = false;
         _isExcludedFromFee[address(this)] = false;
         _isExcludedFromFee[_devAddress] = false;
-        _isExcludedFromFee[_routerAddress] = true;
+        _isExcludedFromFee[address(uniswapV2Router)] = true;
 
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
@@ -888,7 +888,9 @@ contract OKBoomer is Context, IERC20, Ownable {
         (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev) = _getTValues(tAmount);
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
 
+        _tOwned[sender] = _tOwned[sender].sub(tAmount);
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
+        _tOwned[recipient] = _tOwned[recipient].add(tTransferAmount);
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         _takeLiquidity(tLiquidity);
         _takeDevFee(tDev);
@@ -1068,11 +1070,11 @@ contract OKBoomer is Context, IERC20, Ownable {
         }
         
         //indicates if fee should be deducted from transfer
-        bool takeFee = true;
+        bool takeFee = false;
         
         //if any account belongs to _isExcludedFromFee account then remove the fee
         if(_isExcludedFromFee[from] || _isExcludedFromFee[to]){
-            takeFee = false;
+            takeFee = true;
         }
         
         //transfer amount, it will take tax, burn, liquidity fee
@@ -1141,13 +1143,13 @@ contract OKBoomer is Context, IERC20, Ownable {
             removeAllFee();
         
         if (_isExcluded[sender] && !_isExcluded[recipient]) {
-            _transferFromExcluded(sender, recipient, amount);
+            _transferStandard(sender, recipient, amount);
         } else if (!_isExcluded[sender] && _isExcluded[recipient]) {
-            _transferToExcluded(sender, recipient, amount);
+            _transferStandard(sender, recipient, amount);
         } else if (!_isExcluded[sender] && !_isExcluded[recipient]) {
             _transferStandard(sender, recipient, amount);
         } else if (_isExcluded[sender] && _isExcluded[recipient]) {
-            _transferBothExcluded(sender, recipient, amount);
+            _transferStandard(sender, recipient, amount);
         } else {
             _transferStandard(sender, recipient, amount);
         }
@@ -1160,9 +1162,7 @@ contract OKBoomer is Context, IERC20, Ownable {
         (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev) = _getTValues(tAmount);
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
         
-        _tOwned[sender] = _tOwned[sender].sub(tAmount);
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _tOwned[recipient] = _tOwned[recipient].add(tTransferAmount);
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         _takeLiquidity(tLiquidity);
         _takeDevFee(tDev);
@@ -1175,7 +1175,8 @@ contract OKBoomer is Context, IERC20, Ownable {
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
 
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+        _tOwned[recipient] = _tOwned[recipient].add(tTransferAmount);
+        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);           
         _takeLiquidity(tLiquidity);
         _takeDevFee(tDev);
         _reflectFee(rFee, tFee);
@@ -1186,8 +1187,9 @@ contract OKBoomer is Context, IERC20, Ownable {
         (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev) = _getTValues(tAmount);
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
 
+        _tOwned[sender] = _tOwned[sender].sub(tAmount);
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);   
         _takeLiquidity(tLiquidity);
         _takeDevFee(tDev);
         _reflectFee(rFee, tFee);
