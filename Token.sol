@@ -430,7 +430,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
 }
 
 
-contract OKBoomer is Context, IERC20, Ownable {
+contract Cookies is Context, IERC20, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
@@ -444,14 +444,14 @@ contract OKBoomer is Context, IERC20, Ownable {
     address[] private _excluded;
    
     uint256 private constant MAX = ~uint256(0);
-    uint256 private _tTotal = 1000000000 * 10**6 * 10**9;
+    uint256 private _tTotal = 10000000 * 10**6 * 10**9;
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
     address private _devAddress = 0x2Ac5e9bb7421496Bb55Cb215C33B705C7a4aA28c;
 
-    string private _name = "OKBoomer";
-    string private _symbol = "OKBOOM";
+    string private _name = "Cookies";
+    string private _symbol = "COOKIES";
     uint8 private _decimals = 9;
     
     uint256 public _taxFee = 3;
@@ -477,7 +477,7 @@ contract OKBoomer is Context, IERC20, Ownable {
     event SwapAndLiquify(
         uint256 tokensSwapped,
         uint256 ethReceived,
-        uint256 tokensIntoLiqudity
+        uint256 tokensIntoLiquidity
     );
     
     modifier lockTheSwap {
@@ -489,7 +489,7 @@ contract OKBoomer is Context, IERC20, Ownable {
     constructor () public {
         _rOwned[_msgSender()] = _rTotal;
         
-        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x10ED43C718714eb63d5aA57B78B54704E256024E);
+        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0xD99D1c33F9fC3444f8101754aBC46c52416550D1);
          // Create a uniswap pair for this new token
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
             .createPair(address(this), _uniswapV2Router.WETH());
@@ -882,13 +882,7 @@ contract OKBoomer is Context, IERC20, Ownable {
             removeAllFee();
         
         if (_isExcluded[sender] && !_isExcluded[recipient]) {
-            _transferStandard(sender, recipient, amount);
-        } else if (!_isExcluded[sender] && _isExcluded[recipient]) {
-            _transferStandard(sender, recipient, amount);
-        } else if (!_isExcluded[sender] && !_isExcluded[recipient]) {
-            _transferStandard(sender, recipient, amount);
-        } else if (_isExcluded[sender] && _isExcluded[recipient]) {
-            _transferStandard(sender, recipient, amount);
+            _transferFromExcluded(sender, recipient, amount);
         } else {
             _transferStandard(sender, recipient, amount);
         }
@@ -909,26 +903,12 @@ contract OKBoomer is Context, IERC20, Ownable {
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
-    function _transferToExcluded(address sender, address recipient, uint256 tAmount) private {
-        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev) = _getTValues(tAmount);
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
-
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _tOwned[recipient] = _tOwned[recipient].add(tTransferAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);           
-        _takeLiquidity(tLiquidity);
-        _takeDevFee(tDev);
-        _reflectFee(rFee, tFee);
-        emit Transfer(sender, recipient, tTransferAmount);
-    }
-
     function _transferFromExcluded(address sender, address recipient, uint256 tAmount) private {
         (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tDev) = _getTValues(tAmount);
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tDev, _getRate());
-
-        _tOwned[sender] = _tOwned[sender].sub(tAmount);
+        
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);   
+        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         _takeLiquidity(tLiquidity);
         _takeDevFee(tDev);
         _reflectFee(rFee, tFee);
