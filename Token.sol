@@ -444,7 +444,7 @@ contract OKBoomer is Context, IERC20, Ownable {
     address[] private _excluded;
    
     uint256 private constant MAX = ~uint256(0);
-    uint256 private _tTotal = 10000000 * 10**6 * 10**9;
+    uint256 private _tTotal = 1000000000 * 10**6 * 10**9;
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
@@ -489,7 +489,7 @@ contract OKBoomer is Context, IERC20, Ownable {
     constructor () public {
         _rOwned[_msgSender()] = _rTotal;
         
-        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0xD99D1c33F9fC3444f8101754aBC46c52416550D1);
+        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x10ED43C718714eb63d5aA57B78B54704E256024E);
          // Create a uniswap pair for this new token
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
             .createPair(address(this), _uniswapV2Router.WETH());
@@ -498,10 +498,8 @@ contract OKBoomer is Context, IERC20, Ownable {
         uniswapV2Router = _uniswapV2Router;
 
         // exclude owner, dev wallet, and this contract from fee
-        _isExcludedFromFee[owner()] = false;
-        _isExcludedFromFee[address(this)] = false;
-        _isExcludedFromFee[_devAddress] = false;
-        _isExcludedFromFee[address(uniswapV2Router)] = true;
+
+        _isExcludedFromFee[address(uniswapV2Pair)] = true;
 
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
