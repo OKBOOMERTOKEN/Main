@@ -430,7 +430,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
 }
 
 
-contract Cookies is Context, IERC20, Ownable {
+contract OKBoomer is Context, IERC20, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
@@ -450,8 +450,8 @@ contract Cookies is Context, IERC20, Ownable {
 
     address private _devAddress = 0x2Ac5e9bb7421496Bb55Cb215C33B705C7a4aA28c;
 
-    string private _name = "Cookies";
-    string private _symbol = "COOKIES";
+    string private _name = "OKBoomer";
+    string private _symbol = "OKBOOMER";
     uint8 private _decimals = 9;
     
     uint256 public _taxFee = 3;
