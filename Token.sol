@@ -448,7 +448,7 @@ contract OKBoomer is Context, IERC20, Ownable {
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
-    address private _devAddress = 0x2Ac5e9bb7421496Bb55Cb215C33B705C7a4aA28c;
+    address private _devAddress = 0xa719119eBAe73A2F1e80ca1Ef8647193824D00De;
 
     string private _name = "OKBoomer";
     string private _symbol = "OKBOOMER";
@@ -467,10 +467,10 @@ contract OKBoomer is Context, IERC20, Ownable {
     address public uniswapV2Pair;
     
     bool inSwapAndLiquify;
-    bool public swapAndLiquifyEnabled = true;
+    bool public swapAndLiquifyEnabled = false;
     
     uint256 public _maxTxAmount = 500000000 * 10**6 * 10**9;
-    uint256 private numTokensSellToAddToLiquidity = 50000000 * 10**6 * 10**9;
+    uint256 private numTokensSellToAddToLiquidity = 5000 * 10**6 * 10**9;
     
     event MinTokensBeforeSwapUpdated(uint256 minTokensBeforeSwap);
     event SwapAndLiquifyEnabledUpdated(bool enabled);
@@ -496,8 +496,6 @@ contract OKBoomer is Context, IERC20, Ownable {
 
         // set the rest of the contract variables
         uniswapV2Router = _uniswapV2Router;
-
-        // exclude owner, dev wallet, and this contract from fee
 
         _isExcludedFromFee[address(uniswapV2Pair)] = true;
 
@@ -662,7 +660,7 @@ contract OKBoomer is Context, IERC20, Ownable {
         emit SwapAndLiquifyEnabledUpdated(_enabled);
     }
     
-     //to recieve ETH from uniswapV2Router when swapping
+     //to receive ETH from uniswapV2Router when swapping
     receive() external payable {}
 
     function _reflectFee(uint256 rFee, uint256 tFee) private {
